@@ -3,37 +3,45 @@ using System.Diagnostics;
 
 // For displaying the results of the game.
 List<string> QuestionList = [];
-List<string> AnswerList = [];
-List<string> SavedAnswersList = [];
+List<int> AnswerList = [];
+List<int> SavedAnswersList = [];
 string TimeElapsedString;
 
 // For the history of the previous games.
 List<string> QuestionHistory = [];
-List<string> AnswerHistory = [];
-List<string> UserAnswerHistory = [];
+List<int> AnswerHistory = [];
+List<int> UserAnswerHistory = [];
 List<string> TimeElapsedList = [];
 List<int> CorrectAnswersPerGame = [];
 
 // Stopwatch is used to record time for each game.
 Stopwatch stopwatch= new Stopwatch();
 
+
+
+Console.Title = "Math Game";
+Console.BackgroundColor = ConsoleColor.White;
+Console.ForegroundColor = ConsoleColor.Black;
+Console.Clear();
+
+
 // Game Starter.
-Console.WriteLine("Press Any Key to continue");
-string? startKey = Console.ReadLine();
+WriteCenterContent("Press Any Key to continue", 'a');
+string? startKey = ReadLineCenter();
 
 
 if (startKey != null)
 {
     Console.Clear();
-    Console.WriteLine("Do you wish to start a new game? (y/N)");
-    string? newGameStarterInput = Console.ReadLine();
-    if(newGameStarterInput == "y")
+    WriteCenterContent("Do you wish to start a new game? (y/N)", 'a');
+    string? newGameStarterInput = ReadLineCenter();
+    if(newGameStarterInput != null && newGameStarterInput.Trim().ToLower().StartsWith("y"))
     {
-        Console.Clear();
         int difficultyLevel = SelectDifficulty();
         Console.Clear();
         StartGame(difficultyLevel);    
     }
+    Environment.Exit(0);
 }
 
 
@@ -43,16 +51,73 @@ if (startKey != null)
 ......................................................................................................................
 */
 
+// Center content to the center of the screen by placing the cursor to the center and relative to the screen.
+void WriteCenterContent(string? stringToBeCentered = null, char typeOfCenter = 'h')
+{
+    switch (typeOfCenter)
+    {
+        case 'a':
+            if (stringToBeCentered == null)
+            {
+                Console.SetCursorPosition(Console.WindowWidth / 2, Console.WindowHeight / 2);
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.SetCursorPosition((Console.WindowWidth - stringToBeCentered.Length) / 2, Console.WindowHeight / 2);
+                Console.WriteLine(stringToBeCentered);
+            }
+            break;
+        case 'h':
+            if (stringToBeCentered == null)
+            {
+                int padding = Console.WindowWidth / 2;
+                if (padding < 0)
+                {
+                    padding = 0;
+                }
+                string paddedText = new string(' ', padding);
+                // Write the text to the console
+                Console.WriteLine();
+                Console.Write(paddedText);
+            }
+            else
+            {
+                int padding = (Console.WindowWidth - stringToBeCentered.Length) / 2;
+                if (padding < 0)
+                {
+                    padding = 0; 
+                }
+                string paddedText = new string(' ', padding) + stringToBeCentered;
+                Console.WriteLine(paddedText);
+            }
+            break;
+        default:
+            throw new ArgumentException("No such type of centering available");
+    }
+}
+
+
+// This function reads the values from the center of screen horizontally.
+string? ReadLineCenter()
+{
+    WriteCenterContent();
+    string? readLine = Console.ReadLine();
+    return readLine;
+}
+
+
 
 // Function to set difficulty right after starting the game.
 int SelectDifficulty()
 {
-    Console.WriteLine("Select the difficulty of the game:");
-        Console.WriteLine("[0] I'm a noob give me something easy");
-        Console.WriteLine("[1] I'm fine with moderate difficulty");
-        Console.WriteLine("[2] I'm the human calculator. Test my boundaries");
-
-        string? difficultySelection = Console.ReadLine();
+    Console.Clear();
+    WriteCenterContent(@"Select the difficulty of the game:", 'a');
+    Console.WriteLine();
+    WriteCenterContent("[0] I'm a noob give me something easy");
+    WriteCenterContent("[1] I'm fine with moderate difficulty");
+    WriteCenterContent("[2] I'm the human calculator. Test my boundaries");
+    string? difficultySelection = ReadLineCenter();
 
     return difficultySelection switch 
         {
@@ -66,15 +131,15 @@ int SelectDifficulty()
 // Main game loop function.
 void StartGame(int difficultyLevel)
 {
+    Console.Clear();
     int counter = 0;
-
-    Console.WriteLine("Select an operator you want to try:");
-    Console.WriteLine($"[0] Plus");
-    Console.WriteLine($"[1] Minus");
-    Console.WriteLine($"[2] Multiply");
-    Console.WriteLine($"[3] Divide");
-    Console.WriteLine($"[4] Random");
-    string? operatorSymbolSelector = Console.ReadLine();
+    WriteCenterContent("Select an operator you want to try:\n", 'a');
+    WriteCenterContent($"[0] Plus");
+    WriteCenterContent($"[1] Minus");
+    WriteCenterContent($"[2] Multiply");
+    WriteCenterContent($"[3] Divide");
+    WriteCenterContent($"[4] Random");
+    string? operatorSymbolSelector = ReadLineCenter();
     Console.Clear();
     string operatorSymbol = CheckAndReturnOperator(operatorSymbolSelector);
     stopwatch.Start();
@@ -83,10 +148,9 @@ void StartGame(int difficultyLevel)
         var questionAnswer = GenerateQuestion(difficultyLevel, operatorSymbolSelector != "4" ? operatorSymbol : RandomOperator());
         QuestionList.Add(questionAnswer.Item1);
         AnswerList.Add(questionAnswer.Item2);
-        Console.WriteLine($"What is {questionAnswer.Item1}?");
-        string? givenAnswer = Console.ReadLine();
-        Console.Clear();
-        SavedAnswersList.Add(givenAnswer ?? "Invalid answer");
+        WriteCenterContent($"What is {questionAnswer.Item1}?", 'a');
+        int userAnswer = GetIntegerAnswer();
+        SavedAnswersList.Add(userAnswer);
         counter++;
         if (counter < 10)
             continue;
@@ -96,6 +160,29 @@ void StartGame(int difficultyLevel)
 
     AskToContinue();
     
+}
+
+
+// This function makes sure that the answer that is being entered is actually a number
+int GetIntegerAnswer()
+{
+    int userAnswer;
+    while(true)
+    {
+        string? givenAnswer = ReadLineCenter();
+        if (givenAnswer == null || givenAnswer.Trim() == "" || !int.TryParse(givenAnswer, out _))
+        {
+            WriteCenterContent("Are you high? At least enter a number");
+            continue;
+
+        }
+        userAnswer = int.Parse(givenAnswer);
+        Console.Clear();
+        break;
+
+    }
+    return userAnswer;
+
 }
 
 // This function generates operands (in this case numbers) to perform calculations on.
@@ -155,30 +242,30 @@ string RandomOperator()
 }
 
 // After generating the operands and the operator using the functions above, this function is used to generate questions.
-(string,string) GenerateQuestion(int difficultyLevel, string operatorSymbol)
+(string,int) GenerateQuestion(int difficultyLevel, string operatorSymbol)
 {
     var operands = GenerateOperands(difficultyLevel);
-    string answer;
+    int answer;
     switch (operatorSymbol)
     {
         case "+":
-            answer = $"{Operators.Addition(operands.Item1, operands.Item2)}";
+            answer = Operators.Addition(operands.Item1, operands.Item2);
             break;
         case "-":
-            answer = $"{Operators.Subtraction(operands.Item1, operands.Item2)}";       
+            answer = Operators.Subtraction(operands.Item1, operands.Item2);       
             break;
         case "*":
-            answer = $"{Operators.Multiplication(operands.Item1, operands.Item2)}";
+            answer = Operators.Multiplication(operands.Item1, operands.Item2);
             break;
         case "/":
             while (operands.Item2 == 0 || operands.Item1 % operands.Item2 != 0)
             {
                 operands = GenerateOperands(difficultyLevel);
             }
-            answer = $"{Operators.Division(operands.Item1, operands.Item2)}";
+            answer = Operators.Division(operands.Item1, operands.Item2);
             break;
         default:
-            throw new ArgumentException($"operator symbol '{operatorSymbol}' is not supported.");
+            throw new ArgumentOutOfRangeException($"operator symbol '{operatorSymbol}' is not supported.");
     }
     string expression = $"{operands.Item1} {operatorSymbol} {operands.Item2}";
     return (expression, answer);
@@ -188,10 +275,11 @@ string RandomOperator()
 // This function deals with asking whether to continue or quit.
 void AskToContinue()
 {
-    Console.WriteLine("\n\n[0] Do you want to start the game again?");
-    Console.WriteLine("[1] See the history of previous games");
-    Console.WriteLine("Press anything else to quit");
-    var optionSelection = Console.ReadLine();
+    Console.WriteLine("\n\n\n");
+    WriteCenterContent("[0] Do you want to start the game again?");
+    WriteCenterContent("[1] See the history of previous games\n");
+    WriteCenterContent("Press anything else to quit");
+    var optionSelection = ReadLineCenter();
     Console.Clear();
     if (optionSelection == "0")
     {
@@ -201,7 +289,7 @@ void AskToContinue()
         DisplayHistory();
     }else
     {
-        return;
+        Environment.Exit(0);
     }
 }
 
@@ -211,8 +299,12 @@ void CheckAnswers()
 {
     stopwatch.Stop();
     TimeSpan elapsed = stopwatch.Elapsed;
+    stopwatch.Reset();
     TimeElapsedString = $"{elapsed.Hours:D2}:{elapsed.Minutes:D2}:{elapsed.Seconds:D2}";
-    Console.WriteLine($"You solved the questions in {TimeElapsedString}");
+    WriteCenterContent("--------------------------------------------------------------------------------------------------------");
+    WriteCenterContent("GAME SCORE");
+    WriteCenterContent("--------------------------------------------------------------------------------------------------------\n\n");
+    WriteCenterContent($"You solved the questions in {TimeElapsedString}");
     TimeElapsedList.Add(TimeElapsedString);
     int count = 0;
     for (int i = 0; i < AnswerList.Count; i++)
@@ -221,10 +313,11 @@ void CheckAnswers()
             count++;
         else
         {
-            Console.WriteLine($"{QuestionList[i]} is not {SavedAnswersList[i]}");
+            WriteCenterContent($"{QuestionList[i]} is not {SavedAnswersList[i]} it is {AnswerList[i]}");
         }
     }
-    Console.WriteLine($"You have answered {count} questions correctly.");
+    WriteCenterContent($"You have answered {count} questions correctly.");
+    WriteCenterContent("--------------------------------------------------------------------------------------------------------\n\n");
     CorrectAnswersPerGame.Add(count);
     StoreToHistory();
 }
@@ -248,28 +341,30 @@ void DisplayHistory()
 {
     int correctAnswerCount = 0;
     int gameCount = 0;
-    Console.WriteLine("---------------------------------------------------------");
-    Console.WriteLine("GAME HISTORY");
-    Console.WriteLine("---------------------------------------------------------");
+    WriteCenterContent("--------------------------------------------------------------------------------------------------------");
+    WriteCenterContent("GAME HISTORY");
+    WriteCenterContent("--------------------------------------------------------------------------------------------------------");
         
     for (int i=0; i<QuestionHistory.Count; i++)
     {
         if (i%10 == 0)
         {
             gameCount++;
-            Console.WriteLine($"\n\nGame {gameCount}");
-            Console.WriteLine($"You took {TimeElapsedList[gameCount - 1]} to complete this game.");
-            Console.WriteLine($"You answered {CorrectAnswersPerGame[gameCount -1]} questions correctly in this game.");
+            Console.WriteLine();
+            WriteCenterContent($"Game {gameCount}");
+            WriteCenterContent("...........\n");
+            WriteCenterContent($"You took {TimeElapsedList[gameCount - 1]} to complete this game.");
+            WriteCenterContent($"You answered {CorrectAnswersPerGame[gameCount -1]} questions correctly in this game.");
         }
         if (AnswerHistory[i] == UserAnswerHistory[i])
             correctAnswerCount++;
         else
         {
-            Console.WriteLine($"{QuestionHistory[i]} is not {AnswerHistory[i]}");
+            WriteCenterContent($"{QuestionHistory[i]} is not {UserAnswerHistory[i]} it's {AnswerHistory[i]}");
         }
     }
-    Console.WriteLine("\n\n\n---------------------------------------------------------------");
-    Console.WriteLine($"You have answered {correctAnswerCount} questions correctly in total {gameCount} games.");
+    WriteCenterContent("----------------------------------------------------------------------------------------------------------------------");
+    WriteCenterContent($"You have answered {correctAnswerCount} questions correctly in total {gameCount} games.");
 
     AskToContinue();
 }
