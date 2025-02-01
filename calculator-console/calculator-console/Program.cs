@@ -12,6 +12,14 @@ List<PossibleTrigonometricOperations> trigonometricOperationMenuChoices = new Li
 Calculator calculator = new Calculator();
 int useCount = 0;
 
+Console.Write("Press Any Key to start your calculations, or press ESC to exit\t");
+ConsoleKeyInfo startKey = Console.ReadKey();
+if (startKey.Key == ConsoleKey.Escape)
+{
+    Environment.Exit(0);
+}
+Console.Clear();
+
 while(true)
 {
     typeOfOperation = NumberSelectionMenu(menuTitle: "Select the type of operation you want to perform:", menuChoices: operationTypeMenuChoices);
